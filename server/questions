@@ -1,0 +1,23 @@
+// server/questions.js
+const fs = require('fs');
+const path = require('path');
+
+// Load your 150 questions from the JSON file
+const questionsPool = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'questions.json'), 'utf8')
+);
+
+const generateQuestion = (phase) => {
+    // Pick a random question from the 150 available
+    const q = questionsPool[Math.floor(Math.random() * questionsPool.length)];
+    
+    // Map the JSON fields to what your Dashboard.jsx expects
+    return {
+        text: q.shard,
+        options: q.opts.map(String),
+        correct: q.ans,
+        language: q.lang // Useful if you want to show 'Python' or 'C++' in the UI
+    };
+};
+
+module.exports = { generateQuestion };
