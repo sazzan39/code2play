@@ -4,24 +4,27 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: ["https://code2play-1.onrender.com", "http://localhost:3000"],
+  credentials: true
+}));
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// --- CONFIG & SECURITY ---
+// --- CONFIG AND SECURITY ---
 const ADMIN_AUTH = { email: "admin@heist.com", pass: "Vault2026!" };
 let gameStarted = false;
 let players = {}; 
 
-// --- BALANCED PROGRESSION THRESHOLDS (10-30 MINS) ---
 const THRESHOLDS = { PHASE2: 100, PHASE3: 250, PHASE4: 500, WIN: 650 };
 
-// --- INTEGRATED TASK GENERATOR ---
+//  INTEGRATED TASK GENERATOR 
 const getTask = (phase) => {
   if (phase === 1) {
     const questions = [
 
-      // --- Networking & Internet ---
+      // Networking
   { q: "What does 'WWW' stand for?", a: ["Web World Wide", "World Wide Web", "World Web Wide"], c: 1 },
   { q: "Which protocol is used to send emails?", a: ["SMTP", "HTTP", "FTP", "SSH"], c: 0 },
   { q: "What is the standard port for HTTP?", a: ["443", "80", "21", "25"], c: 1 },
@@ -33,7 +36,7 @@ const getTask = (phase) => {
   { q: "Which protocol provides automatic IP addresses?", a: ["DNS", "DHCP", "ICMP", "TCP"], c: 1 },
   { q: "What is the loopback IP address?", a: ["0.0.0.0", "255.255.255.255", "127.0.0.1"], c: 2 },
 
-  // --- Web Development (HTML/CSS/JS) ---
+  //  Web Development
   { q: "Which tag is used to create a hyperlink?", a: ["<link>", "<a>", "<href>", "<url>"], c: 1 },
   { q: "What is the correct HTML for a large heading?", a: ["<head>", "<h6>", "<h1>", "<header>"], c: 2 },
   { q: "Which CSS property changes text color?", a: ["text-style", "font-color", "color", "fg-color"], c: 2 },
@@ -45,7 +48,7 @@ const getTask = (phase) => {
   { q: "What is the 'Alt' attribute used for in images?", a: ["Scaling", "Description", "Filtering"], c: 1 },
   { q: "Which JS function displays a popup box?", a: ["msg()", "popup()", "alert()", "box()"], c: 2 },
 
-  // --- Cybersecurity ---
+  // Cybersecurity
   { q: "What is a 'Phishing' attack?", a: ["Fishing for code", "Fraudulent emails", "Brute forcing"], c: 1 },
   { q: "What does 'VPN' stand for?", a: ["Virtual Private Network", "Visual Port Node", "Verified Path Net"], c: 0 },
   { q: "Which of these is a strong password?", a: ["password123", "admin", "P@ssw0rd!2026"], c: 2 },
@@ -57,7 +60,7 @@ const getTask = (phase) => {
   { q: "Which layer of the OSI model is the Physical layer?", a: ["7", "4", "1", "3"], c: 2 },
   { q: "What is 'Encryption'?", a: ["Deleting data", "Scrambling data", "Moving data"], c: 1 },
 
-  // --- Hardware & OS ---
+  // Hardware and OS
   { q: "What is the 'brain' of the computer?", a: ["RAM", "GPU", "CPU", "HDD"], c: 2 },
   { q: "Which of these is volatile memory?", a: ["SSD", "RAM", "ROM", "Flash Drive"], c: 1 },
   { q: "What does 'BIOS' stand for?", a: ["Basic Input Output System", "Binary Input OS", "Board Integrated System"], c: 0 },
@@ -69,7 +72,7 @@ const getTask = (phase) => {
   { q: "What does 'SSD' stand for?", a: ["Super Speed Drive", "Solid State Drive", "System Storage Disk"], c: 1 },
   { q: "A 'bit' can be...?", a: ["0 or 1", "A or B", "True or False"], c: 0 },
 
-  // --- Cloud & Modern Tech ---
+  // Cloud and Modern Tech
   { q: "What is 'The Cloud'?", a: ["Weather app", "Remote servers", "Local storage"], c: 1 },
   { q: "Which of these is a Cloud provider?", a: ["AWS", "Photoshop", "Excel", "Spotify"], c: 0 },
   { q: "What does 'IoT' stand for?", a: ["Internet of Tasks", "Internal of Tech", "Internet of Things"], c: 2 },
@@ -103,7 +106,7 @@ io.on("connection", (socket) => {
 
     if (isCorrect) {
       p.score += (type === 'decryption' ? 15 : 25);
-      // Auto-Advancement Logic
+      // Auto-advancement Logic
       if (p.score >= THRESHOLDS.PHASE2 && p.phase === 1) p.phase = 2;
       else if (p.score >= THRESHOLDS.PHASE3 && p.phase === 2) p.phase = 3;
       else if (p.score >= THRESHOLDS.PHASE4 && p.phase === 3) p.phase = 4;
