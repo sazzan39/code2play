@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Lock, MapPin } from 'lucide-react';
 
-export default function WinnerView({ agent, winnerName }) {
+export default function WinnerView({ agent, winnerName, secretLocation }) {
   const [revealed, setRevealed] = useState(false);
   
-  // The secret message for the physical treasure hunt
-  const SECRET_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!";
-
+  // Effect to simulate "decrypting" animation
   useEffect(() => {
-    // Fake "Decryption" delay
-    setTimeout(() => setRevealed(true), 3000);
-  }, []);
+    if (secretLocation) {
+      setTimeout(() => setRevealed(true), 3000);
+    }
+  }, [secretLocation]);
 
   const isMe = agent?.name === winnerName;
 
@@ -30,7 +29,7 @@ export default function WinnerView({ agent, winnerName }) {
         </p>
       </div>
 
-      {/* THE VAULT REVEAL (Only show this part) */}
+      {/* THE VAULT REVEAL */}
       <div className="w-full max-w-2xl bg-black border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
         
         {/* Background Grid Effect */}
@@ -42,17 +41,24 @@ export default function WinnerView({ agent, winnerName }) {
           </div>
           
           <h2 className="text-xs text-zinc-500 uppercase tracking-[0.5em] mb-8">
-            {revealed ? "FINAL_COORDINATES_DECRYPTED" : "DECRYPTING_SECURE_LOCATION..."}
+            {revealed ? "FINAL_COORDINATES_DECRYPTED" : "ENCRYPTED DATA STREAM"}
           </h2>
 
           <div className="font-black text-2xl md:text-4xl leading-tight uppercase font-mono text-white/90">
-            {revealed ? (
-              <span className="animate-pulse text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                {SECRET_LOCATION}
-              </span>
+            {/* LOGIC: Only show secret if we have it (Winner) AND animation is done */}
+            {secretLocation ? (
+              revealed ? (
+                <span className="animate-pulse text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                  {secretLocation}
+                </span>
+              ) : (
+                <span className="text-zinc-500 blur-[2px] animate-pulse">
+                  DECRYPTING_SECURE_LOCATION...
+                </span>
+              )
             ) : (
-              <span className="text-zinc-700 blur-[2px]">
-                0x4F 0x9A 0x12 LOADING... ENCRYPTED DATA
+              <span className="text-red-900/50 blur-[1px]">
+                ACCESS DENIED // DATA LOCKED
               </span>
             )}
           </div>

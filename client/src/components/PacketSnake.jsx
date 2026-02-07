@@ -4,18 +4,18 @@ export default function PacketSnake({ onAction }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
 
-  // GAME CONFIG
+  
   const GRID_SIZE = 20;
   const CANVAS_SIZE = 400;
-  const TILE_COUNT = CANVAS_SIZE / GRID_SIZE; // 20x20 grid
+  const TILE_COUNT = CANVAS_SIZE / GRID_SIZE; 
 
-  // REFS (Mutable state that doesn't trigger re-renders)
+  
   const snakeRef = useRef([{ x: 10, y: 10 }]);
   const foodRef = useRef({ x: 15, y: 15 });
-  const directionRef = useRef({ x: 0, y: 0 }); // Start stationary
+  const directionRef = useRef({ x: 0, y: 0 }); 
   const gameLoopRef = useRef(null);
 
-  // HELPER: Generate Random Position
+  
   const getRandomPos = () => {
     return {
       x: Math.floor(Math.random() * TILE_COUNT),
@@ -27,12 +27,12 @@ export default function PacketSnake({ onAction }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    // 1. INITIALIZE WITH RANDOM POSITIONS ON MOUNT
+
     snakeRef.current = [getRandomPos()];
     foodRef.current = getRandomPos();
 
     const handleKeyDown = (e) => {
-      // Prevent scrolling when playing
+      
       if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
         e.preventDefault();
       }
@@ -49,9 +49,9 @@ export default function PacketSnake({ onAction }) {
     };
 
     const checkCollision = (head) => {
-      // Wall Collision
+      
       if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) return true;
-      // Self Collision
+   
       for (let segment of snakeRef.current) {
         if (head.x === segment.x && head.y === segment.y) return true;
       }
@@ -59,29 +59,29 @@ export default function PacketSnake({ onAction }) {
     };
 
     const gameUpdate = () => {
-      // Calculate new head position
+     
       const head = { 
         x: snakeRef.current[0].x + directionRef.current.x, 
         y: snakeRef.current[0].y + directionRef.current.y 
       };
 
-      // Stop update if snake is stationary (start of game)
+     
       if (directionRef.current.x === 0 && directionRef.current.y === 0) {
         drawGame(ctx);
         return;
       }
 
-      // Check Death
+   
       if (checkCollision(head)) {
-        onAction(false, 'snake'); // Server Penalty
-        // Reset to random spot
+        onAction(false, 'snake'); 
+       
         snakeRef.current = [getRandomPos()];
         directionRef.current = { x: 0, y: 0 }; 
         setScore(0);
         return;
       }
 
-      // Move Snake
+   
       snakeRef.current.unshift(head);
 
       // Check Food
@@ -89,7 +89,7 @@ export default function PacketSnake({ onAction }) {
         setScore(s => s + 1);
         onAction(true, 'snake'); // Server Points
         foodRef.current = getRandomPos();
-        // Don't pop() -> Snake grows
+        
       } else {
         snakeRef.current.pop(); // Remove tail
       }
@@ -137,7 +137,7 @@ export default function PacketSnake({ onAction }) {
       />
       
       <p className="mt-6 text-[9px] text-zinc-600 uppercase italic animate-pulse">
-        Use Arrow Keys to Navigate. Avoid Firewalls.
+        Use Arrow Keys to Navigate. Avoid Walls
       </p>
     </div>
   );

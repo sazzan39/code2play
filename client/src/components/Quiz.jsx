@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function Quiz({ task, onAction }) {
-  // Defensive check: if task is null (waiting for server), show loading
+ 
   if (!task) {
     return (
       <div className="flex flex-col items-center justify-center p-12 bg-zinc-900/50 rounded-[2rem] border border-white/5">
@@ -12,7 +12,7 @@ export default function Quiz({ task, onAction }) {
   }
 
   const handleAnswer = (index) => {
-    // Check if clicked index matches the correct 'c' index from server
+    
     const isCorrect = index === task.c;
     onAction(isCorrect, 'quiz');
   };

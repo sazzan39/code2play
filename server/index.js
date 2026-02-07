@@ -5,135 +5,170 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors({
-  origin: ["https://code2play-1.onrender.com", "http://localhost:3000"],
-  credentials: true
-}));
+
+app.use(cors({ origin: "*" })); 
+
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
 
-// --- CONFIG AND SECURITY ---
-const ADMIN_AUTH = { email: "admin@heist.com", pass: "Vault2026!" };
-let gameStarted = false;
+// 2. SOCKET ALLOW ALL
+const io = new Server(server, { 
+  cors: { 
+    origin: "*", 
+    methods: ["GET", "POST"]
+  } 
+});
+
+
+const TREASURE_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!"; 
+
+let gameStarted = false; // 
 let players = {}; 
+const THRESHOLDS = { PHASE2: 400, PHASE3: 600, PHASE4: 800, WIN: 1000 };
 
-const THRESHOLDS = { PHASE2: 100, PHASE3: 250, PHASE4: 500, WIN: 650 };
 
-//  INTEGRATED TASK GENERATOR 
-const getTask = (phase) => {
-  if (phase === 1) {
-    const questions = [
+const QUESTION_BANK = [
+  // NETWORKING 
+  { q: "What is the standard port for HTTPS?", a: ["80", "443", "22", "8080"], c: 1 },
+  { q: "What does 'DNS' stand for?", a: ["Domain Name System", "Digital Network Service", "Data Node Storage"], c: 0 },
+  { q: "Which command checks connectivity to a server?", a: ["tracert", "ping", "netstat", "ipconfig"], c: 1 },
+  { q: "IPv6 addresses are how many bits long?", a: ["32", "64", "128", "256"], c: 2 },
+  { q: "Which device operates at Layer 3 (Network Layer)?", a: ["Hub", "Switch", "Router", "Repeater"], c: 2 },
+  { q: "What does 'FTP' stand for?", a: ["File Transfer Protocol", "Fast Text Processing", "File Type Path"], c: 0 },
+  { q: "Which of these is NOT a valid IP address?", a: ["192.168.1.1", "10.0.0.5", "256.0.0.1"], c: 2 },
+  { q: "What is 'Latency' in networking?", a: ["Bandwidth speed", "Data loss", "Delay in transmission"], c: 2 },
+  { q: "Which protocol is connection-oriented?", a: ["UDP", "TCP", "ICMP", "IP"], c: 1 },
+  { q: "What is the physical address of a NIC called?", a: ["IP Address", "MAC Address", "Port Number"], c: 1 },
 
-      // Networking
+  // --- WEB DEVELOPMENT ---
+  { q: "What does 'JSON' stand for?", a: ["JavaScript Object Notation", "Java Source Open Network", "Just Script On Node"], c: 0 },
+  { q: "Which HTML tag creates a line break?", a: ["<lb>", "<break>", "<br>", "<n>"], c: 2 },
+  { q: "Which HTTP method is used to update data?", a: ["GET", "POST", "PUT", "DELETE"], c: 2 },
+  { q: "In CSS, how do you select an element with class 'box'?", a: ["#box", ".box", "*box", "box()"], c: 1 },
+  { q: "What is React.js mainly used for?", a: ["Database management", "Building User Interfaces", "Server-side routing"], c: 1 },
+  { q: "Which tag creates a numbered list?", a: ["<ul>", "<dl>", "<ol>", "<list>"], c: 2 },
+  { q: "What is the correct syntax for a comment in HTML?", a: ["// Comment", "", "/* Comment */"], c: 1 },
+  { q: "Which CSS property controls space INSIDE a border?", a: ["Margin", "Padding", "Spacing", "Gap"], c: 1 },
+  { q: "What does 'npm' stand for?", a: ["Node Package Manager", "New Project Main", "Net Path Module"], c: 0 },
+  { q: "Which JavaScript keyword declares a constant?", a: ["var", "let", "const", "fixed"], c: 2 },
 
-  { q: "What does 'WWW' stand for?", a: ["Web World Wide", "World Wide Web", "World Web Wide"], c: 1 },
-  { q: "Which protocol is used to send emails?", a: ["SMTP", "HTTP", "FTP", "SSH"], c: 0 },
-  { q: "What is the standard port for HTTP?", a: ["443", "80", "21", "25"], c: 1 },
-  { q: "What is a 'MAC' address?", a: ["Apple's IP", "Media Access Control", "Main Admin Code"], c: 1 },
-  { q: "Which device connects multiple networks together?", a: ["Switch", "Router", "Hub", "Modem"], c: 1 },
-  { q: "What is the speed of a 1Gbps connection in Mbps?", a: ["100", "10", "1000", "500"], c: 2 },
-  { q: "Which of these is a private IP address?", a: ["8.8.8.8", "192.168.1.1", "172.217.0.1"], c: 1 },
-  { q: "What does 'LAN' stand for?", a: ["Local Area Network", "Link Access Node", "Large Area Net"], c: 0 },
-  { q: "Which protocol provides automatic IP addresses?", a: ["DNS", "DHCP", "ICMP", "TCP"], c: 1 },
-  { q: "What is the loopback IP address?", a: ["0.0.0.0", "255.255.255.255", "127.0.0.1"], c: 2 },
+  // --- CYBERSECURITY ---
+  { q: "What is 'DDoS'?", a: ["Direct Denial of Service", "Distributed Denial of Service", "Data Download on Server"], c: 1 },
+  { q: "What is 'Ransomware'?", a: ["Free software", "Malware that demands payment", "Antivirus tool"], c: 1 },
+  { q: "Which of these is a form of Social Engineering?", a: ["SQL Injection", "Pretexting", "Buffer Overflow"], c: 1 },
+  { q: "What does a Firewall do?", a: ["Cools down CPU", "Filters network traffic", "Increases internet speed"], c: 1 },
+  { q: "What is 'Hashing'?", a: ["Encrypting with a key", "One-way data mapping", "Compressing files"], c: 1 },
+  { q: "Which protocol is used for secure remote login?", a: ["Telnet", "SSH", "FTP", "HTTP"], c: 1 },
+  { q: "What is a 'Zero-Day' vulnerability?", a: ["A virus 0 days old", "A flaw known before a fix exists", "A safe bug"], c: 1 },
+  { q: "What does 'CIA' triad stand for in security?", a: ["Confidentiality, Integrity, Availability", "Central Intelligence Agency", "Code, Input, Access"], c: 0 },
+  { q: "What is a 'Botnet'?", a: ["A robot network", "Network of infected computers", "AI chat bot"], c: 1 },
+  { q: "Which is safer: HTTP or HTTPS?", a: ["HTTP", "HTTPS", "They are same"], c: 1 },
 
-  //  Web Development
-  { q: "Which tag is used to create a hyperlink?", a: ["<link>", "<a>", "<href>", "<url>"], c: 1 },
-  { q: "What is the correct HTML for a large heading?", a: ["<head>", "<h6>", "<h1>", "<header>"], c: 2 },
-  { q: "Which CSS property changes text color?", a: ["text-style", "font-color", "color", "fg-color"], c: 2 },
-  { q: "In JavaScript, 'var x = 5' is an example of...?", a: ["Loop", "Variable", "Function", "Object"], c: 1 },
-  { q: "What does 'DOM' stand for?", a: ["Data Object Model", "Document Object Model", "Digital Order Main"], c: 1 },
-  { q: "Which HTML attribute is used for inline styles?", a: ["class", "id", "style", "css"], c: 2 },
-  { q: "How do you select an ID in CSS?", a: [".", "#", "*", "@"], c: 1 },
-  { q: "Which tag is used for a bulleted list?", a: ["<ol>", "<li>", "<ul>", "<dl>"], c: 2 },
-  { q: "What is the 'Alt' attribute used for in images?", a: ["Scaling", "Description", "Filtering"], c: 1 },
-  { q: "Which JS function displays a popup box?", a: ["msg()", "popup()", "alert()", "box()"], c: 2 },
+  // --- HARDWARE & OS ---
+  { q: "What is the core of an Operating System called?", a: ["Shell", "Kernel", "Core", "Root"], c: 1 },
+  { q: "Which storage is faster?", a: ["HDD", "SSD", "Floppy Disk", "CD-ROM"], c: 1 },
+  { q: "What does 'GPU' stand for?", a: ["General Processing Unit", "Graphics Processing Unit", "Gaming Power Unit"], c: 1 },
+  { q: "1024 Gigabytes is equal to...", a: ["1 MB", "1 PB", "1 TB", "1 ZB"], c: 2 },
+  { q: "Which key combination opens Task Manager in Windows?", a: ["Ctrl+C", "Alt+F4", "Ctrl+Shift+Esc"], c: 2 },
+  { q: "What does 'GUI' stand for?", a: ["Graphical User Interface", "General Used Input", "Gaming UI"], c: 0 },
+  { q: "Which component powers all other components?", a: ["CPU", "Motherboard", "PSU", "RAM"], c: 2 },
+  { q: "What is 'Clock Speed' measured in?", a: ["Bytes", "Hertz (Hz)", "Pixels", "Watts"], c: 1 },
+  { q: "Which OS is based on the Darwin kernel?", a: ["Windows", "macOS", "Ubuntu", "Android"], c: 1 },
+  { q: "What is 'Virtualization'?", a: ["VR Gaming", "Running VMs on hardware", "Fake Internet"], c: 1 },
 
-  // Cybersecurity
-  { q: "What is a 'Phishing' attack?", a: ["Fishing for code", "Fraudulent emails", "Brute forcing"], c: 1 },
-  { q: "What does 'VPN' stand for?", a: ["Virtual Private Network", "Visual Port Node", "Verified Path Net"], c: 0 },
-  { q: "Which of these is a strong password?", a: ["password123", "admin", "P@ssw0rd!2026"], c: 2 },
-  { q: "What is 2FA?", a: ["Two Fast Apps", "Two Factor Authentication", "Second File Access"], c: 1 },
-  { q: "A 'White Hat' hacker is...?", a: ["Criminal", "Ethical", "Government Spy"], c: 1 },
-  { q: "What is a 'Trojan' in computing?", a: ["Antivirus", "Malware", "Hardware part"], c: 1 },
-  { q: "Which symbol indicates a secure website?", a: ["Star", "Padlock", "Triangle", "Eye"], c: 1 },
-  { q: "What is 'SQL Injection'?", a: ["Database attack", "Fast coding", "Data entry"], c: 0 },
-  { q: "Which layer of the OSI model is the Physical layer?", a: ["7", "4", "1", "3"], c: 2 },
-  { q: "What is 'Encryption'?", a: ["Deleting data", "Scrambling data", "Moving data"], c: 1 },
-
-  // Hardware and OS
-  { q: "What is the 'brain' of the computer?", a: ["RAM", "GPU", "CPU", "HDD"], c: 2 },
-  { q: "Which of these is volatile memory?", a: ["SSD", "RAM", "ROM", "Flash Drive"], c: 1 },
-  { q: "What does 'BIOS' stand for?", a: ["Basic Input Output System", "Binary Input OS", "Board Integrated System"], c: 0 },
-  { q: "Which OS is open-source?", a: ["Windows", "macOS", "Linux", "iOS"], c: 2 },
-  { q: "How many bits are in a byte?", a: ["4", "8", "16", "32"], c: 1 },
-  { q: "What does 'USB' stand for?", a: ["Universal Serial Bus", "United State Board", "Ultra Speed Binary"], c: 0 },
-  { q: "What is the main circuit board called?", a: ["Fatherboard", "Motherboard", "Keyboard"], c: 1 },
-  { q: "Which component renders graphics?", a: ["CPU", "RAM", "GPU", "PSU"], c: 2 },
-  { q: "What does 'SSD' stand for?", a: ["Super Speed Drive", "Solid State Drive", "System Storage Disk"], c: 1 },
-  { q: "A 'bit' can be...?", a: ["0 or 1", "A or B", "True or False"], c: 0 },
-
-  // Cloud and Modern Tech
-  { q: "What is 'The Cloud'?", a: ["Weather app", "Remote servers", "Local storage"], c: 1 },
-  { q: "Which of these is a Cloud provider?", a: ["AWS", "Photoshop", "Excel", "Spotify"], c: 0 },
-  { q: "What does 'IoT' stand for?", a: ["Internet of Tasks", "Internal of Tech", "Internet of Things"], c: 2 },
-  { q: "What is 'SaaS'?", a: ["System as a Service", "Software as a Service", "Server as a Storage"], c: 1 },
-  { q: "Which language is used for Data Science?", a: ["PHP", "Swift", "Python", "Ruby"], c: 2 },
-  { q: "What is a '404' error?", a: ["Forbidden", "Not Found", "Server Down"], c: 1 },
-  { q: "What is 'Blockchain' used for?", a: ["Encryption", "Cryptocurrency", "Image editing"], c: 1 },
-  { q: "Which of these is an AI?", a: ["Excel", "ChatGPT", "Windows", "Chrome"], c: 1 },
-  { q: "What does 'API' stand for?", a: ["App Program Interface", "Application Programming Interface", "Admin Power Input"], c: 1 },
-  { q: "Who is known as the father of computers?", a: ["Bill Gates", "Charles Babbage", "Alan Turing"], c: 1 }
+  // -- MODERN TECH & CLOUD --
+  { q: "What is 'Git' used for?", a: ["Video editing", "Version Control", "Cloud Hosting"], c: 1 },
+  { q: "Who owns GitHub?", a: ["Google", "Facebook", "Microsoft", "Apple"], c: 2 },
+  { q: "What is 'Docker'?", a: ["A shipping company", "Containerization platform", "New coding language"], c: 1 },
+  { q: "Which of these is a NoSQL database?", a: ["MySQL", "PostgreSQL", "MongoDB", "Oracle"], c: 2 },
+  { q: "What does 'AI' stand for?", a: ["Automated Input", "Artificial Intelligence", "Active Interface"], c: 1 },
+  { q: "What is 'Big Data'?", a: ["Large text files", "Complex/Large datasets", "High res images"], c: 1 },
+  { q: "Which company created the Android OS?", a: ["Samsung", "Apple", "Google", "Nokia"], c: 2 },
+  { q: "What is '5G'?", a: ["5 Gigabytes", "5th Gen Mobile Network", "5 Graphics cards"], c: 1 },
+  { q: "What is 'Open Source'?", a: ["Free Wifi", "Code anyone can inspect/modify", "Paid software"], c: 1 },
+  { q: "Which tech powers Bitcoin?", a: ["Cloud", "Blockchain", "IoT", "Big Data"], c: 1 }
 ];
-    return questions[Math.floor(Math.random() * questions.length)];
+
+
+const getTask = (p) => {
+  if (p.phase === 1) {
+    const qIndex = p.quizIndex % QUESTION_BANK.length;
+    return QUESTION_BANK[qIndex];
   }
-  if (phase === 2) {
+  if (p.phase === 2) {
     return { target: "0x" + Math.floor(Math.random()*255).toString(16).toUpperCase().padStart(2, '0') };
   }
   return null;
 };
 
 io.on("connection", (socket) => {
+  console.log(`NEW SIGNAL: ${socket.id}`);
+
+ 
+  socket.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
+
+  socket.on("adminLogin", (pass) => {
+    if(pass === "Vault2026!") {
+      socket.emit("adminLoginSuccess");
+    } else {
+      socket.emit("adminLoginFail");
+    }
+  });
+
+  //  STRICT WAITING ROOM LOGIC 
   socket.on("joinGame", (name) => {
     const pName = name.toUpperCase();
-    players[socket.id] = { name: pName, score: 0, phase: 1, id: socket.id };
+    players[socket.id] = { name: pName, score: 0, phase: 1, id: socket.id, quizIndex: 0 };
+    
+    // Update leaderboard so Admin sees the new player
     io.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
-    if (gameStarted) socket.emit("gameState", players[socket.id], getTask(1));
+    
+  
+    if (gameStarted) {
+       socket.emit("gameState", players[socket.id], getTask(players[socket.id]));
+    }
   });
 
   socket.on("submitAction", ({ isCorrect, type }) => {
     const p = players[socket.id];
+    // Double check: If game stopped or player invalid, ignore
     if (!p || !gameStarted) return;
 
     if (isCorrect) {
       p.score += (type === 'decryption' ? 15 : 25);
-      // Auto-advancement Logic
+      if (type === 'quiz') p.quizIndex += 1;
+
       if (p.score >= THRESHOLDS.PHASE2 && p.phase === 1) p.phase = 2;
       else if (p.score >= THRESHOLDS.PHASE3 && p.phase === 2) p.phase = 3;
       else if (p.score >= THRESHOLDS.PHASE4 && p.phase === 3) p.phase = 4;
       
-      if (p.score >= THRESHOLDS.WIN) io.emit("winner", p.name);
+      if (p.score >= THRESHOLDS.WIN) {
+        io.emit("winner", p.name);
+        socket.emit("secretReveal", { location: TREASURE_LOCATION });
+      }
     } else {
-      // PENALTY SYSTEM
       const penalty = (type === 'snake' ? 50 : 15);
       p.score = Math.max(0, p.score - penalty);
     }
 
-    socket.emit("gameState", p, getTask(p.phase));
+    socket.emit("gameState", p, getTask(p));
     io.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
   });
 
   socket.on("adminStart", () => {
-    gameStarted = true;
+    console.log("ADMIN RELEASED THE BREACH");
+    gameStarted = true; // 
     io.emit("gameStarted");
+    
+    // Send tasks to all waiting players
     Object.keys(players).forEach(id => {
-      io.to(id).emit("gameState", players[id], getTask(1));
+      if(players[id]) io.to(id).emit("gameState", players[id], getTask(players[id]));
     });
   });
 
+  // 🔄 EMERGENCY RESET
   socket.on("forceReset", () => {
     players = {};
-    gameStarted = false;
+    gameStarted = false; 
     io.emit("forceReset");
   });
 
@@ -143,5 +178,5 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 4001;
-server.listen(PORT, '0.0.0.0', () => console.log(`CODE2PLAY: HEIST CORE ONLINE: ${PORT}`));
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, '0.0.0.0', () => console.log(`CODE2PLAY CORE ONLINE: ${PORT}`));
