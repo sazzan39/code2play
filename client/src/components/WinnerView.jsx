@@ -1,36 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Trophy, Lock, MapPin } from 'lucide-react';
 
-export default function WinnerView({ agent, treasureText }) {
+export default function WinnerView({ agent, winnerName }) {
+  const [revealed, setRevealed] = useState(false);
+  
+  // The secret message for the physical treasure hunt
+  const SECRET_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!";
+
+  useEffect(() => {
+    // Fake "Decryption" delay
+    setTimeout(() => setRevealed(true), 3000);
+  }, []);
+
+  const isMe = agent?.name === winnerName;
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 overflow-hidden">
-      {/* CYBER AMBIANCE */}
-      <div className="absolute inset-0 bg-blue-600/10 blur-[120px] animate-pulse"></div>
-
-      <div className="relative z-10 text-center space-y-10">
-        <div className="space-y-2">
-          <h1 className="text-xl font-mono text-blue-500 tracking-[0.6em] uppercase">Infiltration Successful</h1>
-          <h2 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white">
-            TREASURE_LOCATED
-          </h2>
+    <div className="flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-1000">
+      
+      {/* WINNER HEADER */}
+      <div className="mb-12">
+        <div className="inline-block p-6 rounded-full bg-yellow-500/10 border-2 border-yellow-500 mb-6 animate-bounce">
+          <Trophy className="w-16 h-16 text-yellow-500" />
         </div>
+        <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter mb-4">
+          MISSION ACCOMPLISHED
+        </h1>
+        <p className="text-zinc-400 font-mono tracking-widest text-sm md:text-base">
+          TOP AGENT: <span className="text-white font-bold text-xl">{winnerName}</span>
+        </p>
+      </div>
 
-        <div className="bg-white/5 border border-white/20 p-10 md:p-16 rounded-[3rem] backdrop-blur-2xl shadow-2xl relative">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 px-4 py-1 rounded-full text-[10px] font-bold tracking-widest">
-            DECRYPTED_LOCATION
+      {/* THE VAULT REVEAL (Only show this part) */}
+      <div className="w-full max-w-2xl bg-black border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
+        
+        {/* Background Grid Effect */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        
+        <div className="relative z-10">
+          <div className="flex justify-center mb-6">
+            {revealed ? <MapPin className="w-8 h-8 text-blue-500" /> : <Lock className="w-8 h-8 text-red-500 animate-pulse" />}
           </div>
           
-          <h3 className="text-3xl md:text-5xl font-black text-green-400 font-mono leading-tight">
-            THE TREASURE IS ON THE EDGE OF THE CLASS!
-          </h3>
-          <p className="mt-6 text-zinc-500 font-mono text-xs uppercase tracking-widest">
-            Retrieve it before the system self-destructs.
-          </p>
-        </div>
+          <h2 className="text-xs text-zinc-500 uppercase tracking-[0.5em] mb-8">
+            {revealed ? "FINAL_COORDINATES_DECRYPTED" : "DECRYPTING_SECURE_LOCATION..."}
+          </h2>
 
-        <div className="pt-6">
-          <p className="text-zinc-600 font-mono text-[10px] uppercase">
-            Master Agent: {agent?.name || "UNKNOWN"} // Session_ID: {Math.random().toString(16).slice(2, 8)}
-          </p>
+          <div className="font-black text-2xl md:text-4xl leading-tight uppercase font-mono text-white/90">
+            {revealed ? (
+              <span className="animate-pulse text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                {SECRET_LOCATION}
+              </span>
+            ) : (
+              <span className="text-zinc-700 blur-[2px]">
+                0x4F 0x9A 0x12 LOADING... ENCRYPTED DATA
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

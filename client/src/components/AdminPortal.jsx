@@ -1,108 +1,85 @@
-import React, { useState } from 'react';
-import Button from './Button'; //
+import React, { useState, useEffect } from 'react';
+import { Shield, AlertTriangle, Users, Play, RotateCcw } from 'lucide-react';
 
 export default function AdminPortal({ players, onStart, socket }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [creds, setCreds] = useState({ email: '', pass: '' });
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState("OFFLINE");
 
-  // Use your established credentials
-  const ADMIN_EMAIL = "admin@heist.com";
-  const ADMIN_PASS = "Vault2026!";
+  useEffect(() => {
+    if (socket && socket.connected) {
+      setStatus("CONNECTED");
+    }
+  }, [socket]);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (creds.email === ADMIN_EMAIL && creds.pass === ADMIN_PASS) {
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('ACCESS_DENIED: AUTHENTICATION_FAILURE');
+  // Emergency Reset Handler
+  const handleReset = () => {
+    if (confirm("WARNING: This will kick all players and reset scores. Proceed?")) {
+      socket.emit("forceReset");
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black px-4">
-        <form onSubmit={handleLogin} className="p-8 md:p-12 bg-zinc-900/40 border border-blue-900/30 rounded-[2.5rem] backdrop-blur-2xl w-full max-w-md shadow-2xl">
-          <div className="mb-8">
-            <h2 className="text-2xl font-black italic text-blue-500 tracking-tighter uppercase">Admin Command</h2>
-            <p className="text-zinc-500 text-[10px] font-mono mt-1">SECURE CREDENTIALS REQUIRED</p>
-          </div>
-          
-          <div className="space-y-4">
-            <input 
-              type="email" 
-              placeholder="ADMIN EMAIL" 
-              className="w-full bg-black/50 border border-zinc-800 p-4 rounded-xl text-sm font-mono focus:border-blue-500 outline-none"
-              onChange={(e) => setCreds({ ...creds, email: e.target.value })}
-            />
-            <input 
-              type="password" 
-              placeholder="ENCRYPTION PASS" 
-              className="w-full bg-black/50 border border-zinc-800 p-4 rounded-xl text-sm font-mono focus:border-blue-500 outline-none"
-              onChange={(e) => setCreds({ ...creds, pass: e.target.value })}
-            />
-          </div>
-          
-          {error && <p className="text-red-500 text-[10px] mt-4 font-mono animate-pulse">{error}</p>}
-          
-          <Button type="submit" className="w-full mt-8" variant="primary">
-            Unlock War Map
-          </Button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 md:p-10 bg-black min-h-screen font-mono">
-      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8 bg-zinc-900/20 p-8 rounded-3xl border border-white/5">
-        <div>
-          <h1 className="text-4xl font-black italic text-white tracking-tighter">WAR MAP LIVE</h1>
-          <div className="flex gap-4 mt-2">
-            <span className="text-zinc-500 text-[10px] uppercase">Agents_Online: {players.length}</span>
-            <span className="text-blue-500 text-[10px] uppercase">System: Operational</span>
-          </div>
+    <div className="min-h-screen bg-black text-green-500 font-mono p-8">
+      {/* HEADER */}
+      <div className="flex justify-between items-center border-b border-green-500/30 pb-6 mb-8">
+        <h1 className="text-4xl font-black tracking-[0.2em] flex items-center gap-4">
+          <Shield className="w-10 h-10" />
+          WAR MAP LIVE
+        </h1>
+        <div className="flex items-center gap-4">
+          <span className={`w-3 h-3 rounded-full ${status === "CONNECTED" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></span>
+          <span className="text-xs uppercase tracking-widest opacity-70">SYSTEM: {status}</span>
         </div>
+      </div>
+
+      {/* CONTROL DECK */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         
-        <div className="flex flex-wrap gap-4 w-full lg:w-auto">
-          <Button onClick={onStart} variant="success" className="flex-1 lg:flex-none">
-            Release The Breach
-          </Button>
-          <Button onClick={() => socket.emit("forceReset")} variant="danger" className="flex-1 lg:flex-none">
-            Emergency Reset
-          </Button>
+        {/* BIG RED BUTTON (Green in this case) */}
+        <button 
+          onClick={onStart}
+          className="group relative h-40 flex flex-col items-center justify-center bg-green-500/10 border-2 border-green-500 rounded-3xl hover:bg-green-500 hover:text-black transition-all duration-300"
+        >
+          <Play className="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" />
+          <span className="text-2xl font-black uppercase tracking-[0.2em]">RELEASE THE BREACH</span>
+          <span className="text-[10px] mt-2 opacity-60 uppercase">Initiates Phase 1 for all agents</span>
+        </button>
+
+        {/* EMERGENCY RESET */}
+        <button 
+          onClick={handleReset}
+          className="h-40 flex flex-col items-center justify-center bg-red-900/10 border border-red-900/50 rounded-3xl text-red-500 hover:bg-red-900/30 transition-all"
+        >
+          <RotateCcw className="w-12 h-12 mb-4" />
+          <span className="text-xl font-bold uppercase tracking-widest">EMERGENCY RESET</span>
+        </button>
+      </div>
+
+      {/* LIVE PLAYER LIST */}
+      <div className="border border-green-500/20 rounded-2xl p-8 bg-zinc-900/50">
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
+          <Users className="w-6 h-6" />
+          AGENTS_ONLINE ({players.length})
+        </h2>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {players.map((p, i) => (
+            <div key={i} className="p-4 bg-black border border-green-500/30 rounded-lg">
+              <div className="text-xs opacity-50 mb-1">ID_0{i+1}</div>
+              <div className="font-bold text-white truncate">{p.name}</div>
+              <div className="text-[10px] mt-2 flex justify-between text-green-400">
+                <span>PHASE {p.phase}</span>
+                <span>{p.score} PTS</span>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-full h-1 bg-green-900/30 mt-2 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-green-500 transition-all duration-500" 
+                  style={{ width: `${(p.score / 1000) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {players.map((p, i) => (
-          <div key={i} className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl group hover:border-blue-500/50 transition-all">
-            <div className="flex justify-between items-start mb-6">
-              <div className="max-w-[70%]">
-                <span className="text-[8px] text-zinc-600 block uppercase tracking-widest">Agent Identifier</span>
-                <span className={`text-lg font-bold truncate block ${p.phase === 4 ? 'text-yellow-400' : 'text-white'}`}>{p.name}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-[8px] text-zinc-600 block uppercase tracking-widest">Breach Phase</span>
-                <span className="text-xl font-black text-blue-500">0{p.phase}</span>
-              </div>
-            </div>
-
-            {/* LIVE PROGRESS BAR */}
-            <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden mb-3 border border-white/5">
-              <div 
-                className={`h-full transition-all duration-1000 ${p.phase === 4 ? 'bg-yellow-400' : 'bg-blue-600'}`}
-                style={{ width: `${Math.min((p.score / 750) * 100, 100)}%` }}
-              />
-            </div>
-            
-            <div className="flex justify-between text-[9px] font-mono text-zinc-500 uppercase">
-              <span>Intel_Score: {p.score}</span>
-              <span>{Math.floor((p.score / 750) * 100)}% Comp</span>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

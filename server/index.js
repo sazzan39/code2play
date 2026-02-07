@@ -25,6 +25,7 @@ const getTask = (phase) => {
     const questions = [
 
       // Networking
+
   { q: "What does 'WWW' stand for?", a: ["Web World Wide", "World Wide Web", "World Web Wide"], c: 1 },
   { q: "Which protocol is used to send emails?", a: ["SMTP", "HTTP", "FTP", "SSH"], c: 0 },
   { q: "What is the standard port for HTTP?", a: ["443", "80", "21", "25"], c: 1 },
