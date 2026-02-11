@@ -2,11 +2,15 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
 
 app.use(cors({ origin: "*" })); 
+
+
+app.use(express.static(path.join(__dirname, '../client/dist'))); 
 
 const server = http.createServer(app);
 
@@ -176,6 +180,10 @@ io.on("connection", (socket) => {
     delete players[socket.id];
     io.emit("leaderboardUpdate", Object.values(players));
   });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
 const PORT = process.env.PORT || 10000;
