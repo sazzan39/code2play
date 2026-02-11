@@ -10,7 +10,7 @@ app.use(cors({ origin: "*" }));
 
 const server = http.createServer(app);
 
-// 2. SOCKET ALLOW ALL
+//  SOCKET ALLOW ALL
 const io = new Server(server, { 
   cors: { 
     origin: "*", 
@@ -23,7 +23,7 @@ const TREASURE_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!";
 
 let gameStarted = false; // 
 let players = {}; 
-const THRESHOLDS = { PHASE2: 250, PHASE3: 350, PHASE4: 500, WIN: 650 };
+const THRESHOLDS = { PHASE2: 200, PHASE3: 350, PHASE4: 500, WIN: 650 };
 
 
 const QUESTION_BANK = [
@@ -107,14 +107,14 @@ io.on("connection", (socket) => {
   socket.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
 
   socket.on("adminLogin", (pass) => {
-    if(pass === "Vault2026!") {
+    if(pass === "Vault@@2026!") {
       socket.emit("adminLoginSuccess");
     } else {
       socket.emit("adminLoginFail");
     }
   });
 
-  //  STRICT WAITING ROOM LOGIC 
+  // waiting in gaming zone
   socket.on("joinGame", (name) => {
     const pName = name.toUpperCase();
     players[socket.id] = { name: pName, score: 0, phase: 1, id: socket.id, quizIndex: 0 };
@@ -165,7 +165,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  // 🔄 EMERGENCY RESET
+  //  EMERGENCY RESET
   socket.on("forceReset", () => {
     players = {};
     gameStarted = false; 

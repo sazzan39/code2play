@@ -7,11 +7,11 @@ import Login from './components/Login';
 import AdminPortal from './components/AdminPortal';
 import WinnerView from './components/WinnerView';
 
-const SERVER_URL = window.location.hostname.includes("localhost")
-
-  ? "http://localhost:10000" 
-  : "https://distant-orelle-sazzan-507606d3.koyeb.app";
-
+const SERVER_URL = process.env.REACT_APP_SERVER_URL
+  || (window.location.hostname.includes("localhost")
+    ? "http://localhost:10000" // Local backend port
+    : "https://distant-orelle-sazzan-507606d3.koyeb.app"
+    : "https://code2play-server.onrender.com"); // Render backend URL
 
 const socket = io(SERVER_URL, {
   transports: ["websocket", "polling"]
@@ -30,7 +30,7 @@ export default function App() {
 
 
   //sound
-  const clickSoundRef = useRef(new Audio('/Users/sajandhakal/Desktop/Coding/Projects/code2play/client/public/Audio/click.mp3')); 
+  const clickSoundRef = useRef(new Audio('/Audio/click.mp3'));
 
   useEffect(() => {
   

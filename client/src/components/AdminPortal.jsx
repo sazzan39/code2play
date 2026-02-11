@@ -4,10 +4,8 @@ import { Shield, Users, Play, RotateCcw, Lock, AlertTriangle } from 'lucide-reac
 export default function AdminPortal({ players, onStart, socket }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [status, setStatus] = useState("OFFLINE");
-
-  const ADMIN_PASSWORD = "Vault@@2026!"; 
 
   useEffect(() => {
     // Check connection immediately and listen for changes
@@ -22,15 +20,36 @@ export default function AdminPortal({ players, onStart, socket }) {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleLoginSuccess = () => {
+      setIsAuthenticated(true);
+      setErrorMessage("");
+    };
+
+    const handleLoginFail = () => {
+      setErrorMessage("ACCESS DENIED");
+      setPassword("");
+    };
+
+    socket.on("adminLoginSuccess", handleLoginSuccess);
+    socket.on("adminLoginFail", handleLoginFail);
+
+    return () => {
+      socket.off("adminLoginSuccess", handleLoginSuccess);
+      socket.off("adminLoginFail", handleLoginFail);
+    };
+  }, [socket]);
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      setError(false);
-    } else {
-      setError(true);
-      setPassword("");
+    if (status !== "CONNECTED") {
+      setErrorMessage("SYSTEM OFFLINE");
+      return;
     }
+    setErrorMessage("");
+    socket.emit("adminLogin", password);
   };
 
   const handleStartGame = () => {
@@ -70,7 +89,7 @@ export default function AdminPortal({ players, onStart, socket }) {
                 autoFocus
               />
             </div>
-            {error && <div className="text-red-500 text-xs font-bold text-center">ACCESS DENIED</div>}
+            {errorMessage && <div className="text-red-500 text-xs font-bold text-center">{errorMessage}</div>}
             <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-black font-bold py-3 rounded-lg uppercase">
               Authenticate
             </button>
@@ -80,7 +99,7 @@ export default function AdminPortal({ players, onStart, socket }) {
     );
   }
 
-  // 🔓 DASHBOARD
+  //  DASHBOARD
   return (
     <div className="min-h-screen bg-black text-green-500 font-mono p-8">
       <div className="flex justify-between items-center border-b border-green-500/30 pb-6 mb-8">

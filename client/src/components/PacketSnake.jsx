@@ -4,12 +4,13 @@ export default function PacketSnake({ onAction }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
 
-  // --- CONSTANTS ---
+  // constants
+
   const GRID_SIZE = 20;
   const CANVAS_SIZE = 300; 
   const TILE_COUNT = CANVAS_SIZE / GRID_SIZE; 
 
-  // --- REFS FOR GAME STATE ---
+  // refs for game
   const snakeRef = useRef([{ x: 10, y: 10 }]);
   const foodRef = useRef({ x: 15, y: 15 });
   const directionRef = useRef({ x: 0, y: 0 }); 
@@ -21,7 +22,7 @@ export default function PacketSnake({ onAction }) {
     y: Math.floor(Math.random() * TILE_COUNT)
   });
 
-  // Helper for direction changes (Used by both Keyboard and Mobile Buttons)
+  
   const changeDirection = (newDir) => {
     const currentDir = directionRef.current;
     if (newDir === 'UP' && currentDir.y !== 1) nextDirectionRef.current = { x: 0, y: -1 };
@@ -113,7 +114,7 @@ export default function PacketSnake({ onAction }) {
       
       <canvas ref={canvasRef} width={300} height={300} className="bg-black rounded-lg border border-white/5 shadow-inner" />
 
-      {/* --- MOBILE CONTROLS --- */}
+      {/* MOBILE CONTROLS  */}
       <div className="mt-8 grid grid-cols-3 gap-2 sm:hidden">
         <div />
         <button onClick={() => changeDirection('UP')} className="h-14 w-14 bg-zinc-800 rounded-xl border border-blue-500/30 flex items-center justify-center active:bg-blue-600">▲</button>
