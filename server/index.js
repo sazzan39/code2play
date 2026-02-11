@@ -23,7 +23,7 @@ const TREASURE_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!";
 
 let gameStarted = false; // 
 let players = {}; 
-const THRESHOLDS = { PHASE2: 400, PHASE3: 600, PHASE4: 800, WIN: 1000 };
+const THRESHOLDS = { PHASE2: 250, PHASE3: 350, PHASE4: 500, WIN: 650 };
 
 
 const QUESTION_BANK = [
@@ -39,7 +39,7 @@ const QUESTION_BANK = [
   { q: "Which protocol is connection-oriented?", a: ["UDP", "TCP", "ICMP", "IP"], c: 1 },
   { q: "What is the physical address of a NIC called?", a: ["IP Address", "MAC Address", "Port Number"], c: 1 },
 
-  // --- WEB DEVELOPMENT ---
+  // WEB DEVELOPMENT
   { q: "What does 'JSON' stand for?", a: ["JavaScript Object Notation", "Java Source Open Network", "Just Script On Node"], c: 0 },
   { q: "Which HTML tag creates a line break?", a: ["<lb>", "<break>", "<br>", "<n>"], c: 2 },
   { q: "Which HTTP method is used to update data?", a: ["GET", "POST", "PUT", "DELETE"], c: 2 },

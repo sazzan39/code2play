@@ -7,12 +7,11 @@ import Login from './components/Login';
 import AdminPortal from './components/AdminPortal';
 import WinnerView from './components/WinnerView';
 
-// 🚀 SMART CONNECTION (Auto-switches between Local and Cloud)
-// If the browser URL contains "localhost", it connects to local backend.
-// Otherwise, it uses your Render Production URL.
 const SERVER_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:10000" // Your local backend port
-  : "https://code2play-server.onrender.com"; // Your Render URL
+
+  ? "http://localhost:10000" 
+  : "https://distant-orelle-sazzan-507606d3.koyeb.app";
+
 
 const socket = io(SERVER_URL, {
   transports: ["websocket", "polling"]
