@@ -10,7 +10,7 @@ import WinnerView from './components/WinnerView';
 const SERVER_URL = process.env.REACT_APP_SERVER_URL
   || (window.location.hostname.includes("localhost")
     ? "http://localhost:10000" // Local backend port
-    : "https://distant-orelle-sazzan-507606d3.koyeb.app"
+  
     : "https://code2play-server.onrender.com"); // Render backend URL
 
 const socket = io(SERVER_URL, {

@@ -14,7 +14,7 @@ export default function Login({ onJoin }) {
   return (
     <div className="h-[80vh] flex flex-col items-center justify-center">
       <div className="mb-12 text-center">
-        <h1 className="text-6xl font-black italic tracking-tighter text-white mb-2 uppercase">The_Heist</h1>
+        <h1 className="text-6xl font-black italic tracking-tighter text-white mb-2 uppercase">The Heist</h1>
         <div className="h-1 w-24 bg-blue-600 mx-auto rounded-full shadow-[0_0_15px_rgba(37,99,235,0.8)]" />
         <p className="mt-4 text-[10px] text-zinc-500 font-mono tracking-[0.4em] uppercase">Unauthorized Access Prohibited</p>
       </div>
@@ -39,12 +39,12 @@ export default function Login({ onJoin }) {
           className="w-full"
           variant="primary"
         >
-          Infiltrate_System
+          Infiltrate System39
         </Button>
       </form>
 
       <div className="mt-12 flex gap-8 opacity-20">
-        <div className="text-[8px] font-mono">ENCRYPTION: AES-256</div>
+        <div className="text-[8px] font-mono">ENCRYPTION: SZN-39</div>
         <div className="text-[8px] font-mono">CONNECTION: SECURE</div>
         <div className="text-[8px] font-mono">TRACE: DISABLED</div>
       </div>

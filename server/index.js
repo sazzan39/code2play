@@ -8,27 +8,26 @@ const app = express();
 
 
 app.use(cors({ origin: "*" })); 
+app.use(express.json());
 
-
-app.use(express.static(path.join(__dirname, '../client/dist'))); 
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 const server = http.createServer(app);
 
-//  SOCKET ALLOW ALL
+
 const io = new Server(server, { 
   cors: { 
     origin: "*", 
     methods: ["GET", "POST"]
-  } 
+  },
+  transports: ["websocket", "polling"]
 });
 
-
+// --- 🎮 GAME CONFIGURATION ---
 const TREASURE_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!"; 
-
-let gameStarted = false; // 
+let gameStarted = false; 
 let players = {}; 
 const THRESHOLDS = { PHASE2: 200, PHASE3: 350, PHASE4: 500, WIN: 650 };
-
 
 const QUESTION_BANK = [
   // NETWORKING 
@@ -42,7 +41,6 @@ const QUESTION_BANK = [
   { q: "What is 'Latency' in networking?", a: ["Bandwidth speed", "Data loss", "Delay in transmission"], c: 2 },
   { q: "Which protocol is connection-oriented?", a: ["UDP", "TCP", "ICMP", "IP"], c: 1 },
   { q: "What is the physical address of a NIC called?", a: ["IP Address", "MAC Address", "Port Number"], c: 1 },
-
   // WEB DEVELOPMENT
   { q: "What does 'JSON' stand for?", a: ["JavaScript Object Notation", "Java Source Open Network", "Just Script On Node"], c: 0 },
   { q: "Which HTML tag creates a line break?", a: ["<lb>", "<break>", "<br>", "<n>"], c: 2 },
@@ -54,7 +52,6 @@ const QUESTION_BANK = [
   { q: "Which CSS property controls space INSIDE a border?", a: ["Margin", "Padding", "Spacing", "Gap"], c: 1 },
   { q: "What does 'npm' stand for?", a: ["Node Package Manager", "New Project Main", "Net Path Module"], c: 0 },
   { q: "Which JavaScript keyword declares a constant?", a: ["var", "let", "const", "fixed"], c: 2 },
-
   // --- CYBERSECURITY ---
   { q: "What is 'DDoS'?", a: ["Direct Denial of Service", "Distributed Denial of Service", "Data Download on Server"], c: 1 },
   { q: "What is 'Ransomware'?", a: ["Free software", "Malware that demands payment", "Antivirus tool"], c: 1 },
@@ -66,7 +63,6 @@ const QUESTION_BANK = [
   { q: "What does 'CIA' triad stand for in security?", a: ["Confidentiality, Integrity, Availability", "Central Intelligence Agency", "Code, Input, Access"], c: 0 },
   { q: "What is a 'Botnet'?", a: ["A robot network", "Network of infected computers", "AI chat bot"], c: 1 },
   { q: "Which is safer: HTTP or HTTPS?", a: ["HTTP", "HTTPS", "They are same"], c: 1 },
-
   // --- HARDWARE & OS ---
   { q: "What is the core of an Operating System called?", a: ["Shell", "Kernel", "Core", "Root"], c: 1 },
   { q: "Which storage is faster?", a: ["HDD", "SSD", "Floppy Disk", "CD-ROM"], c: 1 },
@@ -78,7 +74,6 @@ const QUESTION_BANK = [
   { q: "What is 'Clock Speed' measured in?", a: ["Bytes", "Hertz (Hz)", "Pixels", "Watts"], c: 1 },
   { q: "Which OS is based on the Darwin kernel?", a: ["Windows", "macOS", "Ubuntu", "Android"], c: 1 },
   { q: "What is 'Virtualization'?", a: ["VR Gaming", "Running VMs on hardware", "Fake Internet"], c: 1 },
-
   // -- MODERN TECH & CLOUD --
   { q: "What is 'Git' used for?", a: ["Video editing", "Version Control", "Cloud Hosting"], c: 1 },
   { q: "Who owns GitHub?", a: ["Google", "Facebook", "Microsoft", "Apple"], c: 2 },
@@ -92,7 +87,6 @@ const QUESTION_BANK = [
   { q: "Which tech powers Bitcoin?", a: ["Cloud", "Blockchain", "IoT", "Big Data"], c: 1 }
 ];
 
-
 const getTask = (p) => {
   if (p.phase === 1) {
     const qIndex = p.quizIndex % QUESTION_BANK.length;
@@ -104,10 +98,9 @@ const getTask = (p) => {
   return null;
 };
 
+// socket engine
 io.on("connection", (socket) => {
   console.log(`NEW SIGNAL: ${socket.id}`);
-
- 
   socket.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
 
   socket.on("adminLogin", (pass) => {
@@ -118,15 +111,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  // waiting in gaming zone
   socket.on("joinGame", (name) => {
     const pName = name.toUpperCase();
     players[socket.id] = { name: pName, score: 0, phase: 1, id: socket.id, quizIndex: 0 };
-    
-    // Update leaderboard so Admin sees the new player
     io.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
-    
-  
     if (gameStarted) {
        socket.emit("gameState", players[socket.id], getTask(players[socket.id]));
     }
@@ -134,7 +122,6 @@ io.on("connection", (socket) => {
 
   socket.on("submitAction", ({ isCorrect, type }) => {
     const p = players[socket.id];
-    // Double check: If game stopped or player invalid, ignore
     if (!p || !gameStarted) return;
 
     if (isCorrect) {
@@ -159,17 +146,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("adminStart", () => {
-    console.log("ADMIN RELEASED THE BREACH");
-    gameStarted = true; // 
+    gameStarted = true; 
     io.emit("gameStarted");
-    
-    // Send tasks to all waiting players
     Object.keys(players).forEach(id => {
       if(players[id]) io.to(id).emit("gameState", players[id], getTask(players[id]));
     });
   });
 
-  //  EMERGENCY RESET
   socket.on("forceReset", () => {
     players = {};
     gameStarted = false; 
@@ -178,12 +161,17 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     delete players[socket.id];
-    io.emit("leaderboardUpdate", Object.values(players));
+    io.emit("leaderboardUpdate", Object.values(players).sort((a,b) => b.score - a.score));
   });
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+// --- 🛠️ THE CATCH-ALL FIX ---
+// This middleware replaces app.get('*') to prevent PathError on Node v22
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/socket.io')) {
+    return res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+  }
+  next();
 });
 
 const PORT = process.env.PORT || 10000;

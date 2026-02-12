@@ -53,7 +53,7 @@ export default function WinnerView({ agent, winnerName, secretLocation }) {
                 </span>
               ) : (
                 <span className="text-zinc-500 blur-[2px] animate-pulse">
-                  DECRYPTING_SECURE_LOCATION...
+                  DECRYPTING SECURE LOCATION...
                 </span>
               )
             ) : (
