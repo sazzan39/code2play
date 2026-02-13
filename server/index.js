@@ -27,7 +27,7 @@ const io = new Server(server, {
 const TREASURE_LOCATION = "THE TREASURE IS ON THE EDGE OF THE DOOR!"; 
 let gameStarted = false; 
 let players = {}; 
-const THRESHOLDS = { PHASE2: 200, PHASE3: 350, PHASE4: 500, WIN: 650 };
+const THRESHOLDS = { PHASE2: 200, PHASE3: 280, PHASE4: 400, WIN: 550 };
 
 const QUESTION_BANK = [
   // NETWORKING 
