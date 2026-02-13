@@ -49,7 +49,7 @@ export default function App() {
       
       });
     };
-
+// audio section
     window.addEventListener('click', playGlobalClick);
     return () => window.removeEventListener('click', playGlobalClick);
   }, []);
@@ -142,7 +142,7 @@ export default function App() {
               </div>
               <aside className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl backdrop-blur-md h-fit">
                 <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-2">
-                  Live_Infiltrators
+                  Live Infiltrators
                 </h2>
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                   {leaderboard.map((p, i) => (
